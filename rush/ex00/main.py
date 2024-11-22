@@ -1,6 +1,7 @@
 def parse_board(board_string):
     """แปลงกระดานจากข้อความหลายบรรทัดเป็น 2D list"""
-    board = [list(row) for row in board_string.strip().split("\n")]
+    # Remove extra spaces and handle proper trimming for each row
+    board = [row.strip().split() for row in board_string.strip().split("\n")]
     return board
 
 def print_board(board):
@@ -57,22 +58,32 @@ def is_under_attack(board, row, col):
 
 def find_king(board):
     """หาตำแหน่งกษัตริย์ (K)"""
-    for row in range(8):
-        for col in range(8):
+    for row in range(len(board)):
+        for col in range(len(board[row])):
             if board[row][col] == "K":  # กษัตริย์ของคุณ
                 return row, col
     return -1, -1  # กรณีหาไม่เจอ
 
 def checkmate(board):
     """ตรวจสอบว่ากษัตริย์ถูกโจมตีทุกทางหรือไม่ (Checkmate)"""
+    
+    # ตรวจสอบว่ากระดานเป็นขนาด 8x8
+    if len(board) != 8 or any(len(row) != 8 for row in board):
+        return "Invalid board size."  # Simply return a message, no detailed error
+
     king_row, king_col = find_king(board)
+    
+    if king_row == -1 or king_col == -1:
+        return "King not found on the board."
+    
+    # ตรวจสอบทุกตำแหน่งรอบ ๆ กษัตริย์
     for i in range(-1, 2):
         for j in range(-1, 2):
             new_row, new_col = king_row + i, king_col + j
             if 0 <= new_row < 8 and 0 <= new_col < 8:  # ต้องอยู่ในกระดาน
                 if not is_under_attack(board, new_row, new_col):
-                    return False  # มีที่ปลอดภัย
-    return True  # ไม่มีที่ปลอดภัย
+                    return "The king is not in checkmate."  # มีช่องที่ปลอดภัยอยู่
+    return "Checkmate! The king has no safe moves."
 
 def main():
     # กระดานตัวอย่างจากภาพหลายๆ ตาราง
@@ -135,10 +146,8 @@ R N B Q K B N R
         print_board(board)
 
         # ตรวจสอบสถานะ Checkmate
-        if checkmate(board):
-            print("Checkmate! The king has no safe moves.")
-        else:
-            print("The king is not in checkmate.")
+        result = checkmate(board)
+        print(result)
 
 if __name__ == "__main__":
     main()
